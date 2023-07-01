@@ -1,0 +1,2 @@
+# stable_diffusion_prompt_manage_system
+プロンプト管理app
