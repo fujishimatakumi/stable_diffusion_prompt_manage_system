@@ -1,0 +1,44 @@
+version: "3.9"
+services:
+  db:
+    image: mysql:8.0
+    container_name: prompt_manage_mysql
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./my.cnf:/etc/mysql/conf.d/my.cnf
+    environment:
+      MYSQL_ROOT_PASSWORD: 'mysql'
+      MYSQL_DATABASE: 'example'
+      MYSQL_USER: 'app'
+      MYSQL_PASSWORD: 'development'
+      TZ: 'Asia/Tokyo'
+    ports:
+      - '3306:3306'
+    command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --default-authentication-plugin=mysql_native_password
+  web:
+    build: .
+    container_name: prompt_manage_web
+    command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails s -p 3000 -b '0.0.0.0'"
+    volumes:
+      - .:/myapp
+    ports:
+      - '3000:3000'
+    depends_on:
+      - db
+    stdin_open: true
+    tty: true
+  minio:
+    image: minio/minio:latest
+    environment:
+      MINIO_ROOT_USER: "minio"
+      MINIO_ROOT_PASSWORD: "minio123"
+    command: ["minio", "server", "/data", "--console-address", ":9001"]
+    volumes:
+      - minio:/data:cached
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+volumes:
+  mysql-data:
+    driver: local
+  minio:
